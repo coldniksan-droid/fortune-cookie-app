@@ -54,13 +54,9 @@ function App() {
     }
 
     // Initialize Adsgram
-    // ВАЖНО: Замените 'YOUR_BLOCK_ID' на реальный ID из Adsgram (например: "12345" или "int-12345")
-    // Если ID не указан, реклама не будет показываться
-    const adsgramBlockId = "YOUR_BLOCK_ID"; // Замените на реальный ID
-    
-    if (typeof window !== 'undefined' && window.Adsgram && adsgramBlockId !== "YOUR_BLOCK_ID") {
+    if (typeof window !== 'undefined' && window.Adsgram) {
       try {
-        AdControllerRef.current = window.Adsgram.init({ blockId: adsgramBlockId });
+        AdControllerRef.current = window.Adsgram.init({ blockId: "20048" });
       } catch (error) {
         console.log('Adsgram initialization error:', error);
       }
@@ -72,11 +68,22 @@ function App() {
     return predictionsList[randomIndex];
   };
 
-  const handleCookieClick = () => {
+  const handleCookieClick = async () => {
     if (isOpening || showPrediction) return;
 
+    // Show Rewarded Video ad BEFORE opening the cookie
+    if (AdControllerRef.current) {
+      try {
+        await AdControllerRef.current.show();
+        // Ad was shown and completed, proceed with opening
+      } catch (error) {
+        // Ad failed or was skipped, still proceed with opening
+        console.log('Ad show error or skipped:', error);
+      }
+    }
+
+    // After ad (or if no ad), proceed with cookie opening animation
     setIsOpening(true);
-    // Убираем загрузку, сразу показываем предсказание
     const prediction = getRandomPrediction();
     setCurrentPrediction(prediction);
     setShowPrediction(true);

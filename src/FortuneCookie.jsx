@@ -160,25 +160,11 @@ const FortuneCookie = ({ onOpen, isOpening, adController }) => {
       
       setIsBroken(true);
       
-      // Show ad before revealing prediction (30% chance)
-      const showAdAndContinue = async () => {
-        if (Math.random() < 0.3 && adController) {
-          try {
-            await adController.show();
-            // If ad was watched — continue
-          } catch (e) {
-            // If error or closed — continue anyway
-            console.log('Ad show error or closed:', e);
-          }
-        }
-        // Show paper after ad (or immediately if no ad) - убрали задержку для мгновенного показа
-        setShowPaper(true);
-        setTimeout(() => {
-          onOpen();
-        }, 500);
-      };
-      
-      showAdAndContinue();
+      // Show paper and call onOpen (ad is now handled in App.jsx handleCookieClick before opening)
+      setShowPaper(true);
+      setTimeout(() => {
+        onOpen();
+      }, 500);
     }
   };
 
