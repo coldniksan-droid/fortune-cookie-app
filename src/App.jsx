@@ -57,8 +57,10 @@ function App() {
     if (typeof window !== 'undefined' && window.Adsgram) {
       try {
         AdControllerRef.current = window.Adsgram.init({ blockId: "20048" });
+        console.log('Adsgram initialized successfully');
       } catch (error) {
         console.log('Adsgram initialization error:', error);
+        AdControllerRef.current = null; // Ensure it's null on error
       }
     }
   }, [isTelegramWebApp]);
@@ -76,9 +78,15 @@ function App() {
       try {
         await AdControllerRef.current.show();
         // Ad was shown and completed, proceed with opening
+        console.log('Ad shown successfully');
       } catch (error) {
-        // Ad failed or was skipped, still proceed with opening
+        // Ad failed, was skipped, or block is not active - still proceed with opening
         console.log('Ad show error or skipped:', error);
+        // If block is not active, set to null to avoid future attempts
+        if (error?.message?.includes('not active') || error?.message?.includes('Block')) {
+          console.log('Ad block is not active, disabling ad attempts');
+          AdControllerRef.current = null;
+        }
       }
     }
 
