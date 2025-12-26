@@ -23,3 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Bot
+bot/.env
+bot/node_modules
