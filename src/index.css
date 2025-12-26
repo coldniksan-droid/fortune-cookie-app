@@ -15,96 +15,186 @@ html, body, #root {
 }
 
 body {
-  background-color: #a8e6cf;
+  background-color: var(--tg-theme-bg-color, #a8e6cf);
   color: var(--tg-theme-text-color, #000000);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 /* Telegram theme variables fallback */
 :root {
-  --tg-theme-bg-color: #ffffff;
+  --tg-theme-bg-color: #a8e6cf;
   --tg-theme-text-color: #000000;
   --tg-theme-button-color: #3390ec;
   --tg-theme-button-text-color: #ffffff;
   --tg-theme-hint-color: #999999;
   --tg-theme-link-color: #3390ec;
-  --tg-theme-secondary-bg-color: #f1f1f1;
+  --tg-theme-secondary-bg-color: #a8e6cf;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --tg-theme-bg-color: #212121;
+    --tg-theme-bg-color: #1a3d1a;
     --tg-theme-text-color: #ffffff;
     --tg-theme-button-color: #3390ec;
     --tg-theme-button-text-color: #ffffff;
     --tg-theme-hint-color: #707579;
     --tg-theme-link-color: #6ab7ff;
-    --tg-theme-secondary-bg-color: #181818;
+    --tg-theme-secondary-bg-color: #1a3d1a;
   }
 }
 
-/* Prediction card styles - realistic paper */
+/* Prediction card styles - aged paper with texture */
 .prediction-card {
   background: 
-    linear-gradient(90deg, rgba(250, 250, 250, 0.95) 0%, rgba(255, 255, 255, 1) 50%, rgba(250, 250, 250, 0.95) 100%),
+    /* Aged sepia/beige base */
+    linear-gradient(135deg, 
+      rgba(245, 238, 220, 0.98) 0%, 
+      rgba(250, 240, 230, 1) 25%,
+      rgba(248, 235, 215, 1) 50%,
+      rgba(250, 240, 230, 1) 75%,
+      rgba(245, 238, 220, 0.98) 100%
+    ),
+    /* Paper grain texture */
     repeating-linear-gradient(
       0deg,
       transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.03) 2px,
-      rgba(0, 0, 0, 0.03) 4px
+      transparent 1px,
+      rgba(139, 120, 93, 0.03) 1px,
+      rgba(139, 120, 93, 0.03) 2px
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 4px
-    ) !important;
+      transparent 1px,
+      rgba(139, 120, 93, 0.02) 1px,
+      rgba(139, 120, 93, 0.02) 2px
+    ),
+    /* Subtle aged spots */
+    radial-gradient(circle at 20% 30%, rgba(200, 180, 150, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(200, 180, 150, 0.08) 0%, transparent 50%) !important;
   backdrop-filter: none !important;
-  color: #1a1a1a !important;
+  color: #2d1b4e !important;
   box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.2),
     0 0 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(139, 120, 93, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(139, 120, 93, 0.2) !important;
   position: relative;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @media (prefers-color-scheme: dark) {
   .prediction-card {
     background: 
-      linear-gradient(90deg, rgba(240, 240, 240, 0.98) 0%, rgba(255, 255, 255, 1) 50%, rgba(240, 240, 240, 0.98) 100%),
+      /* Slightly lighter aged paper for dark mode */
+      linear-gradient(135deg, 
+        rgba(250, 245, 235, 0.98) 0%, 
+        rgba(255, 250, 240, 1) 25%,
+        rgba(252, 245, 230, 1) 50%,
+        rgba(255, 250, 240, 1) 75%,
+        rgba(250, 245, 235, 0.98) 100%
+      ),
       repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.03) 2px,
-        rgba(0, 0, 0, 0.03) 4px
+        transparent 1px,
+        rgba(139, 120, 93, 0.03) 1px,
+        rgba(139, 120, 93, 0.03) 2px
       ),
       repeating-linear-gradient(
         90deg,
         transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.02) 2px,
-        rgba(0, 0, 0, 0.02) 4px
-      ) !important;
-    color: #1a1a1a !important;
+        transparent 1px,
+        rgba(139, 120, 93, 0.02) 1px,
+        rgba(139, 120, 93, 0.02) 2px
+      ),
+      radial-gradient(circle at 20% 30%, rgba(200, 180, 150, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(200, 180, 150, 0.08) 0%, transparent 50%) !important;
+    color: #2d1b4e !important;
   }
 }
 
 /* Ensure text is always readable */
 .prediction-text {
-  color: #1a1a1a !important;
+  color: #2d1b4e !important;
   opacity: 1 !important;
   font-weight: 500;
   text-shadow: none !important;
+  font-family: 'Playfair Display', serif !important;
+  line-height: 1.6 !important;
+}
+
+/* Prediction text with ink effect */
+.prediction-text-content {
+  color: #2d1b4e !important;
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 500 !important;
+  line-height: 1.6 !important;
+  font-size: 1.125rem !important;
+  letter-spacing: 0.3px !important;
+  position: relative;
+  padding: 0 1.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  /* Soft purple glow shadow */
+  text-shadow: 
+    0 1px 2px rgba(139, 92, 246, 0.3),
+    0 2px 4px rgba(139, 92, 246, 0.2),
+    0 0 8px rgba(139, 92, 246, 0.15),
+    0 1px 1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive styles for small screens */
+@media (max-width: 375px) {
+  .prediction-text-content {
+    font-size: 1rem !important;
+    padding: 0 1rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  .prediction-card {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .prediction-text-content {
+    font-size: 0.9375rem !important;
+    padding: 0 0.75rem !important;
+  }
+  
+  .prediction-card {
+    padding: 0.75rem !important;
+  }
+}
+
+.prediction-quote {
+  color: #8b5cf6;
+  font-size: 2em;
+  opacity: 0.6;
+  font-family: 'Playfair Display', serif;
+  line-height: 0;
+  position: absolute;
+}
+
+.prediction-quote-left {
+  left: 0;
+  top: 0;
+}
+
+.prediction-quote-right {
+  right: 0;
+  bottom: 0;
 }
 
 /* Secondary button styles for better readability */
@@ -153,29 +243,18 @@ body {
   background: transparent;
 }
 
-/* Cookie instruction text style */
+/* Cookie instruction text style - clean and readable */
 .cookie-instruction-text {
-  color: #2d5016 !important;
+  color: #1a3d1a !important;
   font-weight: 600 !important;
   text-shadow: 
-    0 2px 4px rgba(255, 255, 255, 0.8),
-    0 0 8px rgba(255, 215, 0, 0.3),
-    0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    0 2px 8px rgba(255, 255, 255, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.3) !important;
   letter-spacing: 0.5px !important;
-  background: linear-gradient(135deg, #4a7c2a 0%, #2d5016 50%, #4a7c2a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.5));
-}
-
-.cookie-instruction-text::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.1) 100%);
-  border-radius: 8px;
-  padding: 4px 12px;
-  z-index: -1;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  filter: none !important;
 }
 

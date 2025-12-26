@@ -1,18 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, RefreshCw, Loader2 } from 'lucide-react';
+import { Share2, RefreshCw, Sparkles } from 'lucide-react';
 import FortuneCookie from './FortuneCookie';
-import CookieBackground from './CookieBackground';
+// import CookieBackground from './CookieBackground'; // Not used currently
 import { predictionsList } from './predictions';
 
 function App() {
   const [isOpening, setIsOpening] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const AdControllerRef = useRef(null);
 
   // Check if Telegram WebApp is available
   const isTelegramWebApp = typeof window !== 'undefined' && window.Telegram?.WebApp;
+
+  // Debug: Log if app is rendering
+  useEffect(() => {
+    console.log('App component mounted');
+    console.log('Telegram WebApp available:', isTelegramWebApp);
+  }, [isTelegramWebApp]);
 
   useEffect(() => {
     if (isTelegramWebApp) {
@@ -38,6 +44,23 @@ function App() {
           '--tg-theme-button-text-color',
           tg.themeParams.button_text_color || 'var(--tg-theme-button-text-color)'
         );
+        document.documentElement.style.setProperty(
+          '--tg-theme-secondary-bg-color',
+          tg.themeParams.secondary_bg_color || 'var(--tg-theme-secondary-bg-color)'
+        );
+      }
+    }
+
+    // Initialize Adsgram
+    // ВАЖНО: Замените 'YOUR_BLOCK_ID' на реальный ID из Adsgram (например: "12345" или "int-12345")
+    // Если ID не указан, реклама не будет показываться
+    const adsgramBlockId = "YOUR_BLOCK_ID"; // Замените на реальный ID
+    
+    if (typeof window !== 'undefined' && window.Adsgram && adsgramBlockId !== "YOUR_BLOCK_ID") {
+      try {
+        AdControllerRef.current = window.Adsgram.init({ blockId: adsgramBlockId });
+      } catch (error) {
+        console.log('Adsgram initialization error:', error);
       }
     }
   }, [isTelegramWebApp]);
@@ -50,43 +73,33 @@ function App() {
   const handleCookieClick = () => {
     if (isOpening || showPrediction) return;
 
-    // Haptic feedback
-    if (isTelegramWebApp) {
-      try {
-        window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
-      } catch (error) {
-        console.log('Haptic feedback not available:', error);
-      }
-    }
-
     setIsOpening(true);
-    setIsLoading(true);
-
-    // Simulate cookie breaking animation
-    setTimeout(() => {
-      const prediction = getRandomPrediction();
-      setCurrentPrediction(prediction);
-      setIsLoading(false);
-      setShowPrediction(true);
-    }, 1000);
+    // Убираем загрузку, сразу показываем предсказание
+    const prediction = getRandomPrediction();
+    setCurrentPrediction(prediction);
+    setShowPrediction(true);
   };
 
   const handleShareToStory = () => {
     if (isTelegramWebApp && window.Telegram.WebApp.shareToStory) {
       try {
         window.Telegram.WebApp.shareToStory({
-          text: currentPrediction,
-          url: window.location.href
+          text: `🥠 Мое предсказание дня: "${currentPrediction}"\n\nУзнай своё в приложении! 👇`,
+          widget_link: {
+            text: "Открыть печенье",
+            name: "FortuneCookieBot",
+            url: window.location.href
+          }
         });
       } catch (error) {
         console.log('Share to story not available:', error);
         // Fallback: copy to clipboard
-        navigator.clipboard?.writeText(currentPrediction);
+        navigator.clipboard?.writeText(`🥠 Мое предсказание: "${currentPrediction}"`);
         alert('Предсказание скопировано в буфер обмена!');
       }
     } else {
       // Fallback for browser testing
-      navigator.clipboard?.writeText(currentPrediction);
+      navigator.clipboard?.writeText(`🥠 Мое предсказание: "${currentPrediction}"`);
       alert('Предсказание скопировано в буфер обмена!');
     }
   };
@@ -101,8 +114,8 @@ function App() {
     <div
       className="w-full h-full flex items-center justify-center relative"
       style={{
-        backgroundColor: '#a8e6cf',
-        color: 'var(--tg-theme-text-color)',
+        backgroundColor: 'var(--tg-theme-bg-color, #a8e6cf)',
+        color: 'var(--tg-theme-text-color, #000000)',
         minHeight: '100vh',
         padding: '20px'
       }}
@@ -118,29 +131,7 @@ function App() {
             transition={{ duration: 0.3 }}
             className="flex flex-col items-center justify-center"
           >
-            {isLoading ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center"
-              >
-                <Loader2
-                  size={64}
-                  className="animate-spin"
-                  style={{ color: 'var(--tg-theme-button-color)' }}
-                />
-                <motion.p
-                  className="mt-4 text-lg"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  style={{ color: 'var(--tg-theme-text-color)' }}
-                >
-                  Открываю судьбу...
-                </motion.p>
-              </motion.div>
-            ) : (
-              <FortuneCookie onOpen={handleCookieClick} isOpening={isOpening} />
-            )}
+            <FortuneCookie onOpen={handleCookieClick} isOpening={isOpening} adController={AdControllerRef.current} />
           </motion.div>
         ) : (
           <motion.div
@@ -489,29 +480,71 @@ function App() {
               
               <div className="relative z-10">
                 <motion.h2
-                  className="prediction-text text-2xl font-bold mb-4 text-center"
+                  className="text-2xl font-bold mb-6 text-center"
                   style={{
-                    color: '#1a1a1a',
-                    textShadow: 'none'
+                    color: '#2d1b4e',
+                    fontFamily: "'Playfair Display', serif",
+                    letterSpacing: '0.5px'
                   }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
                 >
                   Ваше предсказание
                 </motion.h2>
-                <motion.p
-                  className="prediction-text text-lg leading-relaxed text-center font-medium"
-                  style={{
-                    color: '#1a1a1a',
-                    textShadow: 'none'
-                  }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  {currentPrediction}
-                </motion.p>
+                <div className="relative">
+                  {/* Golden sparkles icon */}
+                  <motion.div
+                    className="absolute -top-8 left-1/2 transform -translate-x-1/2"
+                    initial={{ opacity: 0, scale: 0, rotate: 0 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1,
+                      rotate: 360
+                    }}
+                    transition={{ 
+                      delay: 0.6,
+                      duration: 2,
+                      rotate: {
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }
+                    }}
+                  >
+                    <Sparkles 
+                      size={24} 
+                      className="text-yellow-400"
+                      strokeWidth={2}
+                      style={{
+                        filter: 'drop-shadow(0 2px 4px rgba(255, 215, 0, 0.5))'
+                      }}
+                    />
+                  </motion.div>
+                  
+                  <motion.p
+                    className="prediction-text-content text-center relative"
+                    initial={{ 
+                      opacity: 0, 
+                      y: 20,
+                      filter: 'blur(10px)'
+                    }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      filter: 'blur(0px)'
+                    }}
+                    transition={{ 
+                      delay: 0.7,
+                      duration: 0.8,
+                      ease: "easeOut"
+                    }}
+                  >
+                    <span className="prediction-quote prediction-quote-left">«</span>
+                    {currentPrediction}
+                    <span className="prediction-quote prediction-quote-right">»</span>
+                  </motion.p>
+                </div>
               </div>
             </motion.div>
 

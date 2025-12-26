@@ -1,7 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 
-const FortuneCookie = ({ onOpen, isOpening }) => {
+// Audio for cookie crunch sound
+const crunchAudio = typeof window !== 'undefined' ? new Audio('/crunch.mp3') : null;
+if (crunchAudio) {
+  crunchAudio.volume = 0.5; // Set volume to 50%
+  crunchAudio.preload = 'auto';
+}
+
+const FortuneCookie = ({ onOpen, isOpening, adController }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const [isBroken, setIsBroken] = useState(false);
@@ -105,139 +112,40 @@ const FortuneCookie = ({ onOpen, isOpening }) => {
       }
     }
 
-    // On 3rd tap, break the cookie
+    // On 3rd tap, open the cookie
     if (newTapCount >= 3) {
+      // Play crunch sound
+      if (crunchAudio) {
+        crunchAudio.currentTime = 0; // Reset to start
+        crunchAudio.play().catch(e => {
+          console.log("Audio play failed:", e);
+        });
+      }
+      
       setIsBroken(true);
-      // Show paper after a short delay
-      setTimeout(() => {
+      
+      // Show ad before revealing prediction (30% chance)
+      const showAdAndContinue = async () => {
+        if (Math.random() < 0.3 && adController) {
+          try {
+            await adController.show();
+            // If ad was watched — continue
+          } catch (e) {
+            // If error or closed — continue anyway
+            console.log('Ad show error or closed:', e);
+          }
+        }
+        // Show paper after ad (or immediately if no ad) - убрали задержку для мгновенного показа
         setShowPaper(true);
         setTimeout(() => {
           onOpen();
-        }, 800);
-      }, 300);
+        }, 500);
+      };
+      
+      showAdAndContinue();
     }
   };
 
-  // Cookie half component
-  const CookieHalf = ({ side, isBroken: broken }) => {
-    const isLeft = side === 'left';
-    const gradientId = isLeft ? 'fortuneGradientLeft' : 'fortuneGradientRight';
-    const clipPathId = isLeft ? 'leftHalf' : 'rightHalf';
-    
-    const pathData = "M 40 100 Q 60 40, 100 50 Q 140 40, 160 100 Q 140 160, 100 150 Q 60 160, 40 100 Z";
-    const clipPathData = isLeft 
-      ? "M 40 100 Q 60 40, 100 50 Q 140 40, 100 100 Q 60 160, 40 100 Z"
-      : "M 100 100 Q 140 40, 160 100 Q 140 160, 100 150 Q 60 160, 100 100 Z";
-    const foldPath = isLeft
-      ? "M 50 95 Q 70 50, 100 60"
-      : "M 100 60 Q 130 50, 150 95";
-
-    return (
-      <motion.div
-        className="absolute"
-        style={{
-          left: isLeft ? '0' : '100px',
-          width: '100px',
-          height: '200px',
-          transformOrigin: isLeft ? 'right center' : 'left center',
-          overflow: 'hidden'
-        }}
-        initial={broken ? {} : { x: 0, y: 0, rotate: 0 }}
-        animate={broken ? {
-          x: isLeft ? -50 : 50,
-          y: isLeft ? -20 : 20,
-          rotate: isLeft ? -35 : 35,
-          opacity: [1, 0.9, 0.6]
-        } : {}}
-        transition={{
-          duration: 0.8,
-          ease: "easeOut"
-        }}
-      >
-        <svg width="200" height="200" viewBox="0 0 200 200" style={{ 
-          position: 'absolute',
-          left: isLeft ? '0' : '-100px',
-          top: 0
-        }}>
-          <defs>
-            {/* Smooth golden gradient like in the image */}
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              {isLeft ? (
-                <>
-                  <stop offset="0%" stopColor="#ffd89b" stopOpacity="1" />
-                  <stop offset="30%" stopColor="#ffb347" stopOpacity="1" />
-                  <stop offset="70%" stopColor="#ffa500" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#ff8c00" stopOpacity="1" />
-                </>
-              ) : (
-                <>
-                  <stop offset="0%" stopColor="#ffb347" stopOpacity="1" />
-                  <stop offset="50%" stopColor="#ffa500" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#ff8c00" stopOpacity="1" />
-                </>
-              )}
-            </linearGradient>
-            {/* Soft highlight for 3D effect */}
-            <radialGradient id={`${gradientId}Highlight`} cx="40%" cy="40%">
-              <stop offset="0%" stopColor="#fff8e1" stopOpacity="0.6" />
-              <stop offset="50%" stopColor="#ffd89b" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="transparent" stopOpacity="0" />
-            </radialGradient>
-            {/* Soft shadow gradient */}
-            <radialGradient id={`${gradientId}Shadow`} cx="50%" cy="50%">
-              <stop offset="0%" stopColor="rgba(168, 110, 0, 0.2)" stopOpacity="1" />
-              <stop offset="100%" stopColor="transparent" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <clipPath id={clipPathId}>
-            <path d={clipPathData} />
-          </clipPath>
-          <g clipPath={`url(#${clipPathId})`}>
-            {/* Main cookie body with smooth appearance */}
-            <path
-              d={pathData}
-              fill={`url(#${gradientId})`}
-              stroke="rgba(255, 140, 0, 0.3)"
-              strokeWidth="1"
-              style={{ filter: 'blur(0.5px)' }}
-            />
-            {/* 3D highlight */}
-            <ellipse
-              cx={isLeft ? "70" : "130"}
-              cy="70"
-              rx="35"
-              ry="25"
-              fill={`url(#${gradientId}Highlight)`}
-            />
-            {/* Subtle fold line */}
-            <path
-              d={foldPath}
-              stroke="rgba(255, 200, 100, 0.4)"
-              strokeWidth="1"
-              fill="none"
-              opacity="0.5"
-            />
-            {/* Paper slip peeking out (only on right side when whole) */}
-            {!isLeft && !broken && (
-              <motion.rect
-                x="145"
-                y="95"
-                width="12"
-                height="20"
-                rx="1"
-                fill="#f5f5dc"
-                stroke="rgba(0, 0, 0, 0.1)"
-                strokeWidth="0.5"
-                initial={{ opacity: 0.8 }}
-                animate={{ opacity: [0.8, 0.9, 0.8] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            )}
-          </g>
-        </svg>
-      </motion.div>
-    );
-  };
 
   // Paper slip component - realistic paper fortune
   const PaperSlip = () => (
@@ -363,14 +271,22 @@ const FortuneCookie = ({ onOpen, isOpening }) => {
           </motion.svg>
         )}
 
-        {/* Cookie image or SVG halves container */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center"
-          animate={tapCount > 0 && !isBroken ? getShakeAnimation(tapCount) : {}}
-        >
-          {!isBroken ? (
-            // Whole cookie - try to use image first, fallback to SVG
-            <>
+        {/* Cookie image */}
+        <AnimatePresence>
+          {!isBroken && (
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              animate={tapCount > 0 ? getShakeAnimation(tapCount) : {}}
+              exit={{ 
+                opacity: 0, 
+                scale: 0.8,
+                rotate: 360
+              }}
+              transition={{ 
+                duration: 0.6,
+                ease: "easeInOut"
+              }}
+            >
               {useImage ? (
                 <motion.img
                   ref={imgRef}
@@ -392,32 +308,27 @@ const FortuneCookie = ({ onOpen, isOpening }) => {
                   transition={{ duration: 0.3 }}
                 />
               ) : (
-                // SVG fallback
-                <>
-                  <CookieHalf side="left" isBroken={false} />
-                  <CookieHalf side="right" isBroken={false} />
-                </>
+                <motion.div
+                  className="w-full h-full flex items-center justify-center"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="text-6xl">🥠</div>
+                </motion.div>
               )}
-            </>
-          ) : (
-            // Broken cookie - use SVG halves
-            <>
-              <CookieHalf side="left" isBroken={isBroken} />
-              <CookieHalf side="right" isBroken={isBroken} />
-            </>
-          )}
 
-          {/* Soft lighting overlay (only when whole) */}
-          {!isBroken && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'radial-gradient(ellipse at 35% 35%, rgba(255, 255, 255, 0.2) 0%, transparent 50%)',
-                mixBlendMode: 'soft-light'
-              }}
-            />
+              {/* Soft lighting overlay */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(ellipse at 35% 35%, rgba(255, 255, 255, 0.2) 0%, transparent 50%)',
+                  mixBlendMode: 'soft-light'
+                }}
+              />
+            </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>
 
         {/* Paper slip reveal */}
         <AnimatePresence>
@@ -438,31 +349,40 @@ const FortuneCookie = ({ onOpen, isOpening }) => {
       </div>
       
       {!isOpening && !isBroken && (
-        <motion.p
-          className="cookie-instruction-text mt-8 text-xl font-semibold relative"
-          animate={{
-            opacity: [0.7, 1, 0.7],
-            scale: [1, 1.02, 1]
+        <motion.div
+          className="mt-8 relative"
+          initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
+          animate={{ 
+            opacity: [0.8, 1, 0.8], 
+            y: 0,
+            filter: 'blur(0px)'
           }}
           transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          style={{
-            background: 'linear-gradient(135deg, #4a7c2a 0%, #2d5016 30%, #ffa500 60%, #ff8c00 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            textShadow: '0 2px 8px rgba(255, 255, 255, 0.6), 0 0 12px rgba(255, 215, 0, 0.4)',
-            letterSpacing: '1px',
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+            opacity: {
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            },
+            y: { duration: 0.6 },
+            filter: { duration: 0.6 }
           }}
         >
-          {tapCount === 0 && 'Нажмите, чтобы узнать судьбу'}
-          {tapCount === 1 && 'Ещё раз...'}
-          {tapCount === 2 && 'Почти готово!'}
-        </motion.p>
+          <motion.p
+            className="text-xl text-center relative"
+            style={{
+              color: '#1a3d1a',
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              lineHeight: 1.6,
+              textShadow: '0 2px 8px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {tapCount === 0 && 'Нажмите, чтобы узнать судьбу'}
+            {tapCount === 1 && 'Ещё раз...'}
+            {tapCount === 2 && 'Почти готово!'}
+          </motion.p>
+        </motion.div>
       )}
     </motion.div>
   );
