@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, RefreshCw, Sparkles } from 'lucide-react';
+import { Share2, RefreshCw, Sparkles, Lock, Unlock } from 'lucide-react';
 import FortuneCookie from './FortuneCookie';
 // import CookieBackground from './CookieBackground'; // Not used currently
 import { predictionsList } from './predictions';
@@ -9,6 +9,8 @@ function App() {
   const [isOpening, setIsOpening] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState('');
+  const [showSecretPrediction, setShowSecretPrediction] = useState(false);
+  const [isUnlockingSecret, setIsUnlockingSecret] = useState(false);
   const AdControllerRef = useRef(null);
 
   // Check if Telegram WebApp is available
@@ -114,10 +116,61 @@ function App() {
     }
   };
 
+  const handleUnlockSecretPrediction = async () => {
+    if (isUnlockingSecret) return;
+    
+    setIsUnlockingSecret(true);
+    
+    // Показываем Rewarded Video рекламу
+    if (AdControllerRef.current) {
+      try {
+        // Adsgram Rewarded Video реклама
+        // Примечание: API может отличаться в зависимости от версии Adsgram
+        // Попробуйте: AdControllerRef.current.show({ type: 'rewarded' })
+        // или просто: AdControllerRef.current.show()
+        await AdControllerRef.current.show({
+          type: 'rewarded' // или 'rewarded_video' в зависимости от API Adsgram
+        });
+        
+        // После просмотра рекламы показываем секретное предсказание
+        const secretPrediction = getRandomPrediction();
+        setCurrentPrediction(secretPrediction);
+        setShowSecretPrediction(true);
+        setShowPrediction(true);
+        
+        // Haptic feedback для успешного разблокирования
+        if (isTelegramWebApp) {
+          try {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          } catch (e) {
+            console.log('Haptic feedback error:', e);
+          }
+        }
+      } catch (error) {
+        console.log('Ad show error or closed:', error);
+        // Если реклама не показана или закрыта, все равно показываем предсказание
+        const secretPrediction = getRandomPrediction();
+        setCurrentPrediction(secretPrediction);
+        setShowSecretPrediction(true);
+        setShowPrediction(true);
+      } finally {
+        setIsUnlockingSecret(false);
+      }
+    } else {
+      // Если реклама не инициализирована, просто показываем предсказание
+      const secretPrediction = getRandomPrediction();
+      setCurrentPrediction(secretPrediction);
+      setShowSecretPrediction(true);
+      setShowPrediction(true);
+      setIsUnlockingSecret(false);
+    }
+  };
+
   const handleOpenAnother = () => {
     setIsOpening(false);
     setShowPrediction(false);
     setCurrentPrediction('');
+    setShowSecretPrediction(false);
   };
 
   return (
@@ -572,13 +625,55 @@ function App() {
               </motion.button>
 
               <motion.button
+                onClick={handleUnlockSecretPrediction}
+                disabled={isUnlockingSecret}
+                className="w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 border-2 shadow-lg"
+                style={{
+                  background: showSecretPrediction 
+                    ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)'
+                    : 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+                  color: '#ffffff',
+                  borderColor: showSecretPrediction ? '#8b5cf6' : '#f59e0b',
+                  opacity: isUnlockingSecret ? 0.7 : 1,
+                  cursor: isUnlockingSecret ? 'not-allowed' : 'pointer'
+                }}
+                whileHover={isUnlockingSecret ? {} : { scale: 1.02 }}
+                whileTap={isUnlockingSecret ? {} : { scale: 0.98 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+              >
+                {isUnlockingSecret ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <RefreshCw size={20} />
+                    </motion.div>
+                    Загрузка рекламы...
+                  </>
+                ) : showSecretPrediction ? (
+                  <>
+                    <Unlock size={20} />
+                    Секретное предсказание разблокировано!
+                  </>
+                ) : (
+                  <>
+                    <Lock size={20} />
+                    Разблокировать секретное предсказание
+                  </>
+                )}
+              </motion.button>
+
+              <motion.button
                 onClick={handleOpenAnother}
                 className="secondary-button w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 border-2"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.8 }}
               >
                 <RefreshCw size={20} />
                 Открыть ещё одно
