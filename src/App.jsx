@@ -85,9 +85,8 @@ function App() {
   const handleShareToStory = () => {
     if (isTelegramWebApp && window.Telegram.WebApp.shareToStory) {
       try {
-        // ВАЖНО: Замените 'YOUR_BOT_USERNAME' на реальное имя вашего бота (без @)
-        // Например: если ваш бот @FortuneCookieBot, то используйте 'FortuneCookieBot'
-        const BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на имя вашего бота
+        // Имя бота: @FortuneCookieAppBot
+        const BOT_USERNAME = 'FortuneCookieAppBot';
         
         // Формируем ссылку на Mini App бота
         // Формат: https://t.me/BOT_USERNAME/app
