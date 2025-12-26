@@ -83,23 +83,33 @@ function App() {
   const handleShareToStory = () => {
     if (isTelegramWebApp && window.Telegram.WebApp.shareToStory) {
       try {
+        // ВАЖНО: Замените 'YOUR_BOT_USERNAME' на реальное имя вашего бота (без @)
+        // Например: если ваш бот @FortuneCookieBot, то используйте 'FortuneCookieBot'
+        const BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на имя вашего бота
+        
+        // Формируем ссылку на Mini App бота
+        // Формат: https://t.me/BOT_USERNAME/app
+        const appUrl = BOT_USERNAME !== 'YOUR_BOT_USERNAME' 
+          ? `https://t.me/${BOT_USERNAME}/app`
+          : window.location.href; // Fallback на текущий URL если бот не указан
+        
         window.Telegram.WebApp.shareToStory({
-          text: `🥠 Мое предсказание дня: "${currentPrediction}"\n\nУзнай своё в приложении! 👇`,
+          text: `🥠 Мое предсказание дня:\n\n"${currentPrediction}"\n\n✨ Узнай своё предсказание! ✨`,
           widget_link: {
-            text: "Открыть печенье",
-            name: "FortuneCookieBot",
-            url: window.location.href
+            text: "🔮 Открыть печенье судьбы",
+            name: "Печенье Судьбы",
+            url: appUrl // Кнопка-ссылка на ваше Mini App в истории
           }
         });
       } catch (error) {
         console.log('Share to story not available:', error);
         // Fallback: copy to clipboard
-        navigator.clipboard?.writeText(`🥠 Мое предсказание: "${currentPrediction}"`);
+        navigator.clipboard?.writeText(`🥠 Мое предсказание дня: "${currentPrediction}"\n\n✨ Узнай своё в приложении! ✨`);
         alert('Предсказание скопировано в буфер обмена!');
       }
     } else {
       // Fallback for browser testing
-      navigator.clipboard?.writeText(`🥠 Мое предсказание: "${currentPrediction}"`);
+      navigator.clipboard?.writeText(`🥠 Мое предсказание дня: "${currentPrediction}"\n\n✨ Узнай своё в приложении! ✨`);
       alert('Предсказание скопировано в буфер обмена!');
     }
   };
@@ -114,7 +124,7 @@ function App() {
     <div
       className="w-full h-full flex items-center justify-center relative"
       style={{
-        backgroundColor: 'var(--tg-theme-bg-color, #a8e6cf)',
+        backgroundColor: 'var(--tg-theme-secondary-bg-color, #f1f1f1)',
         color: 'var(--tg-theme-text-color, #000000)',
         minHeight: '100vh',
         padding: '20px'
@@ -480,12 +490,7 @@ function App() {
               
               <div className="relative z-10">
                 <motion.h2
-                  className="text-2xl font-bold mb-6 text-center"
-                  style={{
-                    color: '#2d1b4e',
-                    fontFamily: "'Playfair Display', serif",
-                    letterSpacing: '0.5px'
-                  }}
+                  className="prediction-text text-2xl font-bold mb-6 text-center"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}

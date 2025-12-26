@@ -15,7 +15,7 @@ html, body, #root {
 }
 
 body {
-  background-color: var(--tg-theme-bg-color, #a8e6cf);
+  background-color: var(--tg-theme-secondary-bg-color, #f1f1f1);
   color: var(--tg-theme-text-color, #000000);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -25,28 +25,8 @@ body {
   min-height: 100vh;
 }
 
-/* Telegram theme variables fallback */
-:root {
-  --tg-theme-bg-color: #a8e6cf;
-  --tg-theme-text-color: #000000;
-  --tg-theme-button-color: #3390ec;
-  --tg-theme-button-text-color: #ffffff;
-  --tg-theme-hint-color: #999999;
-  --tg-theme-link-color: #3390ec;
-  --tg-theme-secondary-bg-color: #a8e6cf;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --tg-theme-bg-color: #1a3d1a;
-    --tg-theme-text-color: #ffffff;
-    --tg-theme-button-color: #3390ec;
-    --tg-theme-button-text-color: #ffffff;
-    --tg-theme-hint-color: #707579;
-    --tg-theme-link-color: #6ab7ff;
-    --tg-theme-secondary-bg-color: #1a3d1a;
-  }
-}
+/* Telegram theme variables - Telegram устанавливает эти переменные автоматически */
+/* Fallback значения используются только в использовании переменных, не в их определении */
 
 /* Prediction card styles - aged paper with texture */
 .prediction-card {
@@ -125,33 +105,38 @@ body {
 
 /* Ensure text is always readable */
 .prediction-text {
-  color: #2d1b4e !important;
+  background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 30%, #9333ea 60%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   opacity: 1 !important;
-  font-weight: 500;
-  text-shadow: none !important;
+  font-weight: 600;
   font-family: 'Playfair Display', serif !important;
   line-height: 1.6 !important;
+  text-shadow: none !important;
+  letter-spacing: 0.5px !important;
 }
 
-/* Prediction text with ink effect */
+/* Prediction text with magical gradient effect */
 .prediction-text-content {
-  color: #2d1b4e !important;
+  background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 25%, #6d28d9 50%, #7c3aed 75%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-family: 'Playfair Display', serif !important;
   font-weight: 500 !important;
-  line-height: 1.6 !important;
+  line-height: 1.7 !important;
   font-size: 1.125rem !important;
-  letter-spacing: 0.3px !important;
+  letter-spacing: 0.4px !important;
   position: relative;
   padding: 0 1.5rem;
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
-  /* Soft purple glow shadow */
-  text-shadow: 
-    0 1px 2px rgba(139, 92, 246, 0.3),
-    0 2px 4px rgba(139, 92, 246, 0.2),
-    0 0 8px rgba(139, 92, 246, 0.15),
-    0 1px 1px rgba(0, 0, 0, 0.1) !important;
+  /* Magical glow shadow for depth */
+  filter: drop-shadow(0 1px 2px rgba(139, 92, 246, 0.4)) 
+          drop-shadow(0 2px 4px rgba(124, 58, 237, 0.3))
+          drop-shadow(0 0 8px rgba(139, 92, 246, 0.2));
 }
 
 /* Responsive styles for small screens */

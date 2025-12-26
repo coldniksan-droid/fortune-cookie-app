@@ -1,12 +1,21 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 
-// Audio for cookie crunch sound
-const crunchAudio = typeof window !== 'undefined' ? new Audio('/crunch.mp3') : null;
-if (crunchAudio) {
-  crunchAudio.volume = 0.5; // Set volume to 50%
-  crunchAudio.preload = 'auto';
-}
+// Audio for cookie crunch sound - создаем внутри компонента для правильной работы
+const createAudio = (src, volume = 0.5) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const audio = new Audio(src);
+    audio.volume = volume;
+    audio.preload = 'auto';
+    // Предзагрузка звука
+    audio.load();
+    return audio;
+  } catch (e) {
+    console.log('Audio creation failed:', e);
+    return null;
+  }
+};
 
 const FortuneCookie = ({ onOpen, isOpening, adController }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -15,9 +24,19 @@ const FortuneCookie = ({ onOpen, isOpening, adController }) => {
   const [showPaper, setShowPaper] = useState(false);
   const [useImage, setUseImage] = useState(false); // Start with false, will check if image exists
   const imgRef = useRef(null);
+  
+  // Audio refs для звуков
+  const crunchAudioRef = useRef(null);
+  const tapAudioRef = useRef(null);
 
   // Check if Telegram WebApp is available
   const isTelegramWebApp = typeof window !== 'undefined' && window.Telegram?.WebApp;
+
+  // Инициализация звуков
+  useEffect(() => {
+    crunchAudioRef.current = createAudio('/crunch.mp3', 0.6); // Звук хруста при разламывании
+    tapAudioRef.current = createAudio('/crunch.mp3', 0.2); // Тихий звук для первых тапов
+  }, []);
 
   // Check if image exists on mount - try different formats
   useEffect(() => {
@@ -112,14 +131,31 @@ const FortuneCookie = ({ onOpen, isOpening, adController }) => {
       }
     }
 
+    // Звук для первых двух тапов (тихий)
+    if (newTapCount < 3 && tapAudioRef.current) {
+      try {
+        tapAudioRef.current.currentTime = 0;
+        tapAudioRef.current.play().catch(e => {
+          console.log("Tap audio play failed:", e);
+        });
+      } catch (e) {
+        console.log("Tap audio error:", e);
+      }
+    }
+
     // On 3rd tap, open the cookie
     if (newTapCount >= 3) {
-      // Play crunch sound
-      if (crunchAudio) {
-        crunchAudio.currentTime = 0; // Reset to start
-        crunchAudio.play().catch(e => {
-          console.log("Audio play failed:", e);
-        });
+      // Play crunch sound (громкий хруст)
+      if (crunchAudioRef.current) {
+        try {
+          crunchAudioRef.current.currentTime = 0; // Reset to start
+          crunchAudioRef.current.volume = 0.6; // Убедимся, что громкость правильная
+          crunchAudioRef.current.play().catch(e => {
+            console.log("Crunch audio play failed:", e);
+          });
+        } catch (e) {
+          console.log("Crunch audio error:", e);
+        }
       }
       
       setIsBroken(true);
